@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import CodeEditor from '@uiw/react-textarea-code-editor';
 
 /**
  * Pure JSON editor – never mutates the user's data structure.
@@ -161,18 +162,25 @@ export default function JsonEditor({
               : "Paste JSON…"}
         </span>
       </div>
-
-      <textarea
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setLocalError(null);
-        }}
-        disabled={disabled}
-        spellCheck={false}
-        placeholder={`{\n  "_type": "project",\n  "title": "Drive X",\n  "slug": { "_type": "slug", "current": "drive-x" }\n}`}
-        className="min-h-[280px] flex-1 resize-y rounded-lg border border-zinc-700 bg-zinc-950 p-3 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600 disabled:opacity-60"
-      />
+            <div data-color-mode="dark" className="min-h-[280px] flex-1 relative rounded-lg border border-zinc-700 bg-zinc-950 overflow-hidden focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
+        <CodeEditor
+          value={value}
+          language="json"
+          placeholder={`{\n  "_type": "project",\n  "title": "Drive X",\n  "slug": { "_type": "slug", "current": "drive-x" }\n}`}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setLocalError(null);
+          }}
+          disabled={disabled}
+          padding={15}
+          className="h-full font-mono text-sm"
+          style={{
+            fontSize: 16, 
+            backgroundColor: "transparent", 
+            fontFamily: "var(--font-geist-mono), monospace",
+          }}
+        />
+      </div>
 
       {(localError || (value?.trim() && !validation.valid)) && (
         <p className="text-xs text-red-400">{localError || validation.error}</p>
