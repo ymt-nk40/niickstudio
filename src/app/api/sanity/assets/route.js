@@ -50,10 +50,36 @@ export async function POST(request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = file.name || "upload";
     const contentTypeHeader = file.type || "application/octet-stream";
+    const uploadAsImage = assetType === "image" || IMAGE_MIME_TYPES.has(contentTypeHeader);
+    const sanityAssetDocType = uploadAsImage ? "sanity.imageAsset" : "sanity.fileAsset";
+
+    // Auto-replace: Sanity assets are addressed by content hash, not filename,
+    // so re-uploading a file with the same name normally just creates a
+    // second, unrelated asset. To make "same name = replace" behavior,
+    // find any existing asset with the same originalFilename and delete it
+    // first. If it's still referenced by another document, Sanity will
+    // refuse the delete — in that case we skip it and still upload the new
+    // one, and let the caller know via `replacedExisting`/`replaceWarning`.
+    let replacedExisting = false;
+    let replaceWarning = null;
+    try {
+      const existing = await client.fetch(
+        `*[_type == $type && originalFilename == $name][0]{_id}`,
+        { type: sanityAssetDocType, name: filename }
+      );
+      if (existing?._id) {
+        await client.delete(existing._id);
+        replacedExisting = true;
+      }
+    } catch (err) {
+      replaceWarning =
+        "A previous asset with this filename exists but is still referenced by another document, so it wasn't removed.";
+      console.warn("[assets upload] could not remove existing asset with same filename:", err?.message || err);
+    }
 
     let asset;
 
-    if (assetType === "image" || IMAGE_MIME_TYPES.has(contentTypeHeader)) {
+    if (uploadAsImage) {
       asset = await client.assets.upload("image", buffer, {
         filename,
         contentType: contentTypeHeader,
@@ -69,6 +95,8 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
+      replacedExisting,
+      replaceWarning,
       asset: {
         _id: asset._id,
         _type: asset._type,

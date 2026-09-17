@@ -70,7 +70,10 @@ export default function DocumentUploadPanel({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               document: v.parsed,
-              operation: "createOrReplace",
+              // "update" must fail if the document doesn't exist yet — that's
+              // what distinguishes it from "Create or Replace". Only
+              // createOrReplace should upsert.
+              operation: operation === "update" ? "patch" : "createOrReplace",
             }),
           }
         );
@@ -193,16 +196,16 @@ export default function DocumentUploadPanel({
         <p className="font-medium text-zinc-300">Operations</p>
         <ul className="mt-1 list-inside list-disc space-y-0.5">
           <li>
-            <strong>Create</strong> – new document. Fails if <code>_id</code>{" "}
-            already exists.
+            <strong>Create</strong> – makes a brand-new document. Fails if{" "}
+            <code>_id</code> already exists.
           </li>
           <li>
-            <strong>Update</strong> – requires <code>_id</code>. Replaces the
-            whole document.
+            <strong>Update</strong> – requires <code>_id</code> and the
+            document must already exist. Fails if it doesn't.
           </li>
           <li>
-            <strong>Create or Replace</strong> – creates if missing, overwrites
-            if present. Requires confirmation.
+            <strong>Create or Replace</strong> – doesn't check first: creates
+            it if missing, overwrites it if present. Requires confirmation.
           </li>
         </ul>
       </div>

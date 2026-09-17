@@ -162,7 +162,7 @@ export default function JsonEditor({
               : "Paste JSON…"}
         </span>
       </div>
-            <div data-color-mode="dark" className="min-h-[280px] flex-1 relative rounded-lg border border-zinc-700 bg-zinc-950 overflow-hidden focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
+            <div data-color-mode="dark" className="h-72 relative rounded-lg border border-zinc-700 bg-zinc-950 overflow-y-auto focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
         <CodeEditor
           value={value}
           language="json"
@@ -173,7 +173,7 @@ export default function JsonEditor({
           }}
           disabled={disabled}
           padding={15}
-          className="h-full font-mono text-sm"
+          className="min-h-full font-mono text-sm"
           style={{
             fontSize: 16, 
             backgroundColor: "transparent", 

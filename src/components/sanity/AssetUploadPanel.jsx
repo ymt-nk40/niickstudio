@@ -105,7 +105,13 @@ export default function AssetUploadPanel({ onAssetUploaded, onInsertRef, onToast
       });
       setRecentAssets((prev) => [data.asset, ...prev].slice(0, 20));
       onAssetUploaded?.(data.asset);
-      onToast?.(`Uploaded: ${data.asset.originalFilename}`, "success");
+      if (data.replacedExisting) {
+        onToast?.(`Replaced existing asset: ${data.asset.originalFilename}`, "success");
+      } else if (data.replaceWarning) {
+        onToast?.(data.replaceWarning, "info");
+      } else {
+        onToast?.(`Uploaded: ${data.asset.originalFilename}`, "success");
+      }
       return data.asset;
     } catch (err) {
       updateItem(item.id, {
@@ -143,6 +149,7 @@ export default function AssetUploadPanel({ onAssetUploaded, onInsertRef, onToast
 
   const handleClearCompleted = () => {
     setQueue((prev) => prev.filter((i) => i.status !== "uploaded"));
+    setRecentAssets([]);
   };
 
   const handleCopy = async (text) => {
